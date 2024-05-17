@@ -43,7 +43,6 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.6",
     "chai": "^5.1.1",
-    "mime": "^4.0.3",
     "mocha": "^10.4.0",
     "rollup": "^4.17.2",
     "typescript": "^5.4.5",
@@ -59,6 +58,7 @@
     "gulp-plugin-extras": "^1.0.0",
     "hasha": "^6.0.0",
     "lodash": "^4.17.21",
-    "proxy-agent": "^6.4.0"
+    "proxy-agent": "^6.4.0",
+    "mime": "^4.0.3"
   }
 }
