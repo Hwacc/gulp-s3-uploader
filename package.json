@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Gulp plugin for uploading files to Amazon S3 with v3 api",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hwacc/gulp-s3-uploader.git"
+  },
   "type": "module",
   "exports": {
     "types": "./lib/types/index.d.ts",
