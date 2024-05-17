@@ -1,4 +1,3 @@
-import { gulpPlugin } from 'gulp-plugin-extras';
 import type { ClientConfig, ExpandPluginConfig } from './types';
 import {
   HeadObjectCommand,
@@ -16,6 +15,9 @@ import colors from 'ansi-colors';
 import pkg from 'lodash';
 import mime from 'mime';
 import path from 'node:path';
+import es from 'event-stream';
+import PluginError from 'plugin-error';
+import { BufferFile } from 'vinyl';
 
 const { each, isEmpty, isFunction, isNil } = pkg;
 
@@ -45,8 +47,12 @@ export default function gulpS3Uploader(
   const client = new S3Client(clientConfig as S3ClientConfig);
 
   return (configs: ExpandPluginConfig = {}) => {
-    return gulpPlugin('gulp-s3-uploader', async (file) => {
-      if (file.isNull()) return file;
+    const pName = 'gulp-s3-uploader';
+    const mapStream = async (
+      file: BufferFile,
+      callback: (err?: any, newData?: BufferFile | null) => void
+    ) => {
+      if (file.isNull()) return callback();
 
       let keyname = file.relative;
       if (configs.keyTransform) {
@@ -84,7 +90,9 @@ export default function gulpS3Uploader(
           error.$metadata &&
           !(error.$metadata.httpStatusCode === 404 || error.$metadata.httpStatusCode === 403)
         ) {
-          throw new Error('S3 headObject Error');
+          return callback(
+            new PluginError(pName, new Error('S3 headObject Error'), { showStack: true })
+          );
         }
       }
 
@@ -96,11 +104,12 @@ export default function gulpS3Uploader(
         // no change
         fancyLog(colors.gray('No Change ..... '), keyname);
         isFunction(configs.onNoChange) && configs.onNoChange.call(this, keyname);
-        return file;
+        return callback(null, file);
       } else {
         if (mimeType) {
           configs.ContentType = configs.ContentType || mimeType;
         }
+
         if ((configs.uploadNewFilesOnly && isEmpty(headerRes)) || !configs.uploadNewFilesOnly) {
           if (file.stat) {
             configs.ContentLength = file.stat?.size || configs.ContentLength;
@@ -108,28 +117,43 @@ export default function gulpS3Uploader(
 
           fancyLog(colors.cyan('Uploading ..... '), keyname);
 
-          const putRes = (await client.send(
-            new PutObjectCommand({
-              ...configs,
-              Key: keyname,
-              Body: file.contents,
-            } as PutObjectCommandInput)
-          )) as MetadataBearer & { ETag: string };
-
-          if (serverHash !== putRes.ETag) {
-            fancyLog(colors.yellow('Updated ....... '), keyname);
-            isFunction(configs.onChange) && configs.onChange.call(this, keyname);
-          } else {
-            fancyLog(colors.gray('No Change ..... '), keyname);
-            isFunction(configs.onNoChange) && configs.onNoChange.call(this, keyname);
+          let putRes = {} as MetadataBearer & { ETag: string };
+          try {
+            putRes = (await client.send(
+              new PutObjectCommand({
+                ...configs,
+                Key: keyname,
+                Body: file.contents,
+              } as PutObjectCommandInput)
+            )) as MetadataBearer & { ETag: string };
+          } catch (error) {
+            return callback(
+              new PluginError(pName, new Error('S3 putObject Error: ' + error), {
+                showStack: true,
+              })
+            );
           }
+
+          if (!isEmpty(headerRes)) {
+            if (serverHash !== putRes.ETag) {
+              fancyLog(colors.yellow('Updated ....... '), keyname);
+              isFunction(configs.onChange) && configs.onChange.call(this, keyname);
+            } else {
+              fancyLog(colors.gray('No Change ..... '), keyname);
+              isFunction(configs.onNoChange) && configs.onNoChange.call(this, keyname);
+            }
+          } else {
+            fancyLog(colors.green('Uploaded! ..... '), keyname);
+            isFunction(configs.onNew) && configs.onNew.call(this, keyname);
+          }
+          return callback(null, file);
         } else {
-          fancyLog(colors.green('Uploaded! ..... '), keyname);
-          isFunction(configs.onNew) && configs.onNew.call(this, keyname);
-          return file;
+          fancyLog(colors.gray('Skipping Upload of Existing File ..... '), keyname);
+          return callback(null, file);
         }
       }
-      return file;
-    });
+    };
+
+    return es.map(mapStream);
   };
 }

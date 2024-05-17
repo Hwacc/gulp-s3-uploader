@@ -1,5 +1,5 @@
 
-import s3Uploader from './dist/index.js';
+import s3Uploader from './lib/index.mjs';
 import Vinyl from 'vinyl';
 import { expect } from 'chai';
 
@@ -16,8 +16,8 @@ describe('gulp-s3-uploader', () => {
 
   it('should work in buffer mode', () => {
     const client = s3Uploader({
-      key: 'S3Key',
-      secret: 'S3Secret',
+      key: 'S3_accessKeyId',
+      secret: 'S3_secretAccessKey',
     })
     const stream = client({
       Bucket: 'Bucket',
@@ -33,7 +33,15 @@ describe('gulp-s3-uploader', () => {
       path: '/test/test.txt',
       contents: fakeBuffer,
     });
+    const fakeBuffer2 = Buffer.from('hello again', 'utf8');
+    const fakeFile2 = new Vinyl({
+      cwd: '/',
+      base: '/test/',
+      path: '/test/test1.txt',
+      contents: fakeBuffer2,
+    });
     stream.write(fakeFile);
+    stream.write(fakeFile2);
     stream.end();
   });
 
