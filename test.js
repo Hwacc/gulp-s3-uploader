@@ -1,5 +1,5 @@
 
-import s3Uploader from './lib/index.mjs';
+import s3Uploader from './lib/index.js';
 import Vinyl from 'vinyl';
 import { expect } from 'chai';
 

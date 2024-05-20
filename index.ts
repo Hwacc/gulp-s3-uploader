@@ -9,7 +9,7 @@ import {
 import { MetadataBearer } from '@aws-sdk/types';
 import { ProxyAgent } from 'proxy-agent';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
-import { hash } from 'hasha';
+import hasha from 'hasha';
 import fancyLog from 'fancy-log';
 import colors from 'ansi-colors';
 import pkg from 'lodash';
@@ -29,10 +29,12 @@ export default function gulpS3Uploader(
 
   if (!clientConfig.region) clientConfig.region = 'us-east-1';
 
-  if (clientConfig.key && clientConfig.secret) {
+  const _accessKeyId = clientConfig.accessKeyId || clientConfig.key;
+  const _secretAccessKey = clientConfig.secretAccessKey || clientConfig.secret;
+  if (_accessKeyId && _secretAccessKey) {
     clientConfig.credentials = {
-      accessKeyId: clientConfig.key,
-      secretAccessKey: clientConfig.secret,
+      accessKeyId: _accessKeyId,
+      secretAccessKey: _secretAccessKey,
     };
   }
 
@@ -90,14 +92,12 @@ export default function gulpS3Uploader(
           error.$metadata &&
           !(error.$metadata.httpStatusCode === 404 || error.$metadata.httpStatusCode === 403)
         ) {
-          return callback(
-            new PluginError(pName, new Error('S3 headObject Error'), { showStack: true })
-          );
+          return callback(new PluginError(pName, error, { showStack: true }));
         }
       }
 
       const serverHash = headerRes.ETag || '';
-      let localHash = await hash(file.contents, { algorithm: configs.etagHash || 'md5' });
+      let localHash = await hasha.async(file.contents, { algorithm: configs.etagHash || 'md5' });
       localHash = `"${localHash}"`;
 
       if (serverHash && serverHash === localHash) {
@@ -126,9 +126,9 @@ export default function gulpS3Uploader(
                 Body: file.contents,
               } as PutObjectCommandInput)
             )) as MetadataBearer & { ETag: string };
-          } catch (error) {
+          } catch (error: any) {
             return callback(
-              new PluginError(pName, new Error('S3 putObject Error: ' + error), {
+              new PluginError(pName, error, {
                 showStack: true,
               })
             );

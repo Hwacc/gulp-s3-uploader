@@ -1,6 +1,6 @@
 {
   "name": "gulp-s3-uploader",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Gulp plugin for uploading files to Amazon S3 with v3 api",
   "license": "MIT",
   "repository": {
@@ -10,11 +10,11 @@
   "type": "module",
   "exports": {
     "types": "./lib/types/index.d.ts",
-    "import": "./lib/index.mjs",
+    "import": "./lib/index.js",
     "require": "./lib/index.cjs"
   },
   "scripts": {
-    "build": "rollup -c ./rollup.config.js",
+    "build": "tsc & rollup -c ./rollup.config.js",
     "test": "mocha"
   },
   "author": {
@@ -41,6 +41,8 @@
   ],
   "packageManager": "yarn@1.22.22",
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "chai": "^5.1.1",
     "mocha": "^10.4.0",

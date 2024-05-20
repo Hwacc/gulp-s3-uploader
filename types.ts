@@ -1,9 +1,11 @@
 import { PutObjectCommandInput } from '@aws-sdk/client-s3';
-import { HashAlgorithm } from 'hasha';
+import hasha from 'hasha';
 
 export type ClientConfig = {
-  key?: string;
-  secret?: string;
+  key?: string; // shortcut of accessKeyId
+  secret?: string; // shortcut of secretAccessKey
+  accessKeyId?: string;
+  secretAccessKey?: string;
 };
 
 export type ExpandPluginConfig = Partial<PutObjectCommandInput> &
@@ -12,7 +14,7 @@ export type ExpandPluginConfig = Partial<PutObjectCommandInput> &
 
 export type PluginConfig = {
   charset?: string;
-  etagHash?: HashAlgorithm;
+  etagHash?: hasha.AlgorithmName;
   uploadNewFilesOnly?: boolean;
   maps?: Record<keyof ExpandPluginConfig, (keyname: string) => string>;
   keyTransform?: (keyname: string) => string;
