@@ -30,8 +30,8 @@ create client instance:
 const s3Client = s3(clientConfig: ClientConfig);
 
 type ClientConfig = Partial<S3ClientConfig> & {
-  key?: string; // shot of accessKeyId
-  secret?: string; // shot of secretAccessKey
+  key?: string; // short of accessKeyId
+  secret?: string; // short of secretAccessKey
   accessKeyId?: string; // your access key
   secretAccessKey?: string; // your secret key
 }
