@@ -55,7 +55,7 @@ type PluginConfig = Partial<PutObjectCommandInput> & {
     // if true, will not upload if there is no change
     uploadNewFilesOnly?: boolean;
     // this function could fix the PluginConfig params by keyname during runtime
-    maps?: Record<keyof PluginConfig, (keyname: string) => string>;
+    maps?: Record<keyof PluginConfig, (keyname: string) => any>;
     // transform each keyname before upload
     keyTransform?: (keyname: string) => string;
     // no change callback
