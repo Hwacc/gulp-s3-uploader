@@ -1,7 +1,10 @@
 
-import s3Uploader from './lib/index.js';
-import Vinyl from 'vinyl';
-import { expect } from 'chai';
+// import s3Uploader from './lib/index.js';
+const s3Uploader = require('./lib/index.cjs');
+// import Vinyl from 'vinyl';
+const Vinyl = require('vinyl');
+// import { expect } from 'chai';
+const expect = import('chai').expect;
 
 describe('gulp-s3-uploader', () => {
 
@@ -37,7 +40,7 @@ describe('gulp-s3-uploader', () => {
     const fakeFile2 = new Vinyl({
       cwd: '/',
       base: '/test/',
-      path: '/test/test1.txt',
+      path: '/test/test.txt.gz',
       contents: fakeBuffer2,
     });
     stream.write(fakeFile);

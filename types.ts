@@ -16,7 +16,7 @@ export type PluginConfig = {
   charset?: string;
   etagHash?: hasha.AlgorithmName;
   uploadNewFilesOnly?: boolean;
-  maps?: Record<keyof ExpandPluginConfig, (keyname: string) => string>;
+  maps?: Record<keyof ExpandPluginConfig, (keyname: string) => any>;
   keyTransform?: (keyname: string) => string;
   onNoChange?: (keyname: string) => void;
   onChange?: (keyname: string) => void;

@@ -56,9 +56,11 @@ export default function gulpS3Uploader(
     ) => {
       if (file.isNull()) return callback();
 
+      const confs = { ...configs }; // fix: new obj of configs
+
       let keyname = file.relative;
-      if (configs.keyTransform) {
-        keyname = configs.keyTransform(keyname);
+      if (confs.keyTransform) {
+        keyname = confs.keyTransform(keyname);
       } else {
         // build name
         keyname = path.join(
@@ -68,24 +70,24 @@ export default function gulpS3Uploader(
       }
       keyname = keyname.replace(/\\/g, '/');
 
-      // fix configs parmas by keyname in runtime
-      if (!isNil(configs.maps)) {
-        each(configs.maps, function (mapRoutine, param_name) {
+      // fix confs parmas by keyname in runtime
+      if (!isNil(confs.maps)) {
+        each(confs.maps, function (mapRoutine, param_name) {
           if (isFunction(mapRoutine)) {
-            configs[param_name] = mapRoutine(keyname);
+            confs[param_name] = mapRoutine(keyname);
           }
         });
       }
 
       let mimeType = mime.getType(keyname) || '';
-      if (configs.charset) {
-        mimeType += ';charset=' + configs.charset;
+      if (confs.charset) {
+        mimeType += ';charset=' + confs.charset;
       }
 
       let headerRes = {} as MetadataBearer & { ETag: string };
       try {
         headerRes = (await client.send(
-          new HeadObjectCommand({ Bucket: configs.Bucket, Key: keyname })
+          new HeadObjectCommand({ Bucket: confs.Bucket, Key: keyname })
         )) as MetadataBearer & { ETag: string };
       } catch (error: any) {
         if (
@@ -97,22 +99,22 @@ export default function gulpS3Uploader(
       }
 
       const serverHash = headerRes.ETag || '';
-      let localHash = await hasha.async(file.contents, { algorithm: configs.etagHash || 'md5' });
+      let localHash = await hasha.async(file.contents, { algorithm: confs.etagHash || 'md5' });
       localHash = `"${localHash}"`;
 
       if (serverHash && serverHash === localHash) {
         // no change
         fancyLog(colors.gray('No Change ..... '), keyname);
-        isFunction(configs.onNoChange) && configs.onNoChange.call(this, keyname);
+        isFunction(confs.onNoChange) && confs.onNoChange.call(this, keyname);
         return callback(null, file);
       } else {
         if (mimeType) {
-          configs.ContentType = configs.ContentType || mimeType;
+          confs.ContentType = confs.ContentType || mimeType;
         }
 
-        if ((configs.uploadNewFilesOnly && isEmpty(headerRes)) || !configs.uploadNewFilesOnly) {
+        if ((confs.uploadNewFilesOnly && isEmpty(headerRes)) || !confs.uploadNewFilesOnly) {
           if (file.stat) {
-            configs.ContentLength = file.stat?.size || configs.ContentLength;
+            confs.ContentLength = file.stat?.size || confs.ContentLength;
           }
 
           fancyLog(colors.cyan('Uploading ..... '), keyname);
@@ -121,7 +123,7 @@ export default function gulpS3Uploader(
           try {
             putRes = (await client.send(
               new PutObjectCommand({
-                ...configs,
+                ...confs,
                 Key: keyname,
                 Body: file.contents,
               } as PutObjectCommandInput)
@@ -137,14 +139,14 @@ export default function gulpS3Uploader(
           if (!isEmpty(headerRes)) {
             if (serverHash !== putRes.ETag) {
               fancyLog(colors.yellow('Updated ....... '), keyname);
-              isFunction(configs.onChange) && configs.onChange.call(this, keyname);
+              isFunction(confs.onChange) && confs.onChange.call(this, keyname);
             } else {
               fancyLog(colors.gray('No Change ..... '), keyname);
-              isFunction(configs.onNoChange) && configs.onNoChange.call(this, keyname);
+              isFunction(confs.onNoChange) && confs.onNoChange.call(this, keyname);
             }
           } else {
             fancyLog(colors.green('Uploaded! ..... '), keyname);
-            isFunction(configs.onNew) && configs.onNew.call(this, keyname);
+            isFunction(confs.onNew) && confs.onNew.call(this, keyname);
           }
           return callback(null, file);
         } else {
