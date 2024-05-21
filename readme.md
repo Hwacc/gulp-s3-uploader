@@ -1,10 +1,10 @@
 # gulp-s3-uploader
 
-__Version 1.0.5__
+__Version 1.0.6__
 
 Insprired by [gulp-s3-upload](https://github.com/clineamb/gulp-s3-upload/tree/master) use for uploading assets to Amazon S3 servers with v3 api.
 
-## Install 
+## Install
 
 npm install gulp-s3-uploader
 
@@ -12,12 +12,12 @@ npm install gulp-s3-uploader
 
 Use same options as [gulp-s3-upload](https://github.com/clineamb/gulp-s3-upload/tree/master) but simplified.
 
-
 ```js
 import gulp from 'gulp';
 import s3 from 'gulp-s3-uploader';
 ```
-or in commonjs 
+
+or in commonjs
 
 ```js
 const gulp = require('gulp');
@@ -37,8 +37,8 @@ type ClientConfig = Partial<S3ClientConfig> & {
 }
 
 ```
-see `S3ClientConfig` at [S3Client Configuration](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/)
 
+see `S3ClientConfig` at [S3Client Configuration](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/)
 
 then use it in gulp:
 
@@ -69,7 +69,6 @@ type PluginConfig = Partial<PutObjectCommandInput> & {
 ```
 
 see `PutObjectCommandInput` at [PutObjectCommand](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/command/PutObjectCommand/)
-
 
 ## License
 
