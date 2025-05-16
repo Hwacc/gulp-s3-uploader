@@ -1,10 +1,6 @@
-
-// import s3Uploader from './lib/index.js';
-const s3Uploader = require('./lib/index.cjs');
-// import Vinyl from 'vinyl';
-const Vinyl = require('vinyl');
-// import { expect } from 'chai';
-const expect = import('chai').expect;
+import s3Uploader from './lib/index.js';
+import Vinyl from 'vinyl';
+import { expect } from 'chai';
 
 describe('gulp-s3-uploader', () => {
 
